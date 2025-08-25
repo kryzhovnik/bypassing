@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quick Call</title>
+    <title>Быстрый звонок</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <style>
         * {
@@ -148,9 +148,21 @@
             aspect-ratio: 16/9;
         }
         
-        .videos.waiting .video-container {
+        .videos.waiting .video-container:first-child {
+            /* Host video - full width */
             max-width: 600px;
             margin: 0 auto;
+        }
+        
+        .videos.waiting .video-container:last-child {
+            /* Remote placeholder - small bottom-right */
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         
         .videos.connected .video-container:first-child {
@@ -285,6 +297,14 @@
                 left: 15px;
             }
             
+            .videos.waiting .video-container:last-child {
+                /* Remote placeholder - smaller on mobile */
+                width: 120px;
+                height: 90px;
+                bottom: 100px; /* Above mobile controls */
+                right: 15px;
+            }
+            
             .controls {
                 padding: 15px 20px;
                 padding-bottom: max(15px, env(safe-area-inset-bottom));
@@ -315,31 +335,31 @@
 <body>
     <div class="container">
         <div class="welcome-card">
-            <h1>Quick Call</h1>
-            <p class="subtitle">Instant video calls, no signup required</p>
+            <h1>Быстрый звонок</h1>
+            <p class="subtitle">Мгновенные видеозвонки без регистрации</p>
             
             <div class="room-link">
-                <input type="text" id="roomUrl" readonly value="Creating your room...">
-                <button class="copy-btn" onclick="copyLink()" id="copyBtn">Copy Link</button>
+                <input type="text" id="roomUrl" readonly value="Создание комнаты...">
+                <button class="copy-btn" onclick="copyLink()" id="copyBtn">Копировать ссылку</button>
             </div>
             
             <p id="instructions" style="color: #6b7280;">
-                Share this link with someone to start a call instantly
+                Поделитесь этой ссылкой, чтобы мгновенно начать звонок
             </p>
             
             <div id="status" class="status waiting">
-                <span id="statusText">Creating room</span>
+                <span id="statusText">Создание комнаты</span>
                 <span class="spinner"></span>
             </div>
             
             <div class="videos" id="videos">
                 <div class="video-container">
                     <video id="localVideo" autoplay muted playsinline></video>
-                    <span class="video-label">You</span>
+                    <span class="video-label">Вы</span>
                 </div>
                 <div class="video-container">
                     <video id="remoteVideo" autoplay playsinline></video>
-                    <span class="video-label">Friend</span>
+                    <span class="video-label">Собеседник</span>
                 </div>
             </div>
             
@@ -423,7 +443,7 @@
                 
             } catch (err) {
                 console.error('Failed to get media:', err);
-                updateStatus('Camera/microphone access denied', 'error');
+                updateStatus('Доступ к камере/микрофону запрещен', 'error');
                 return;
             }
             
@@ -438,9 +458,9 @@
             peer.on('open', (id) => {
                 console.log('Connected with ID:', id);
                 if (isHost) {
-                    updateStatus('Waiting for someone to join...', 'waiting');
+                    updateStatus('Ожидание собеседника...', 'waiting');
                 } else {
-                    updateStatus('Connecting...', 'waiting');
+                    updateStatus('Подключение...', 'waiting');
                     // If not host, try to call the original room ID (host)
                     const hostId = window.location.hash.slice(1); // Original room ID from URL
                     setTimeout(() => makeCall(hostId), 1000);
@@ -488,7 +508,7 @@
                 // Create PiP container for local video
                 createLocalPiP();
                 
-                updateStatus('Connected', 'connected');
+                updateStatus('Подключено', 'connected');
                 document.getElementById('instructions').style.display = 'none';
                 document.querySelector('.room-link').style.display = 'none';
             });
@@ -499,7 +519,7 @@
             
             call.on('error', (err) => {
                 console.error('Call error:', err);
-                updateStatus('Connection failed', 'error');
+                updateStatus('Ошибка подключения', 'error');
             });
         }
         
@@ -521,7 +541,7 @@
             // Add label
             const label = document.createElement('span');
             label.className = 'video-label';
-            label.textContent = 'You';
+            label.textContent = 'Вы';
             
             pipContainer.appendChild(pipVideo);
             pipContainer.appendChild(label);
@@ -545,7 +565,7 @@
             document.getElementById('videos').classList.add('waiting');
             document.getElementById('instructions').style.display = 'block';
             document.querySelector('.room-link').style.display = 'block';
-            updateStatus('Call ended - Waiting for someone to join...', 'waiting');
+            updateStatus('Звонок завершен - Ожидание собеседника...', 'waiting');
         }
         
         function toggleAudio() {
@@ -574,11 +594,11 @@
             document.execCommand('copy');
             
             const btn = document.getElementById('copyBtn');
-            btn.textContent = 'Copied!';
+            btn.textContent = 'Скопировано!';
             btn.classList.add('copied');
             
             setTimeout(() => {
-                btn.textContent = 'Copy Link';
+                btn.textContent = 'Копировать ссылку';
                 btn.classList.remove('copied');
             }, 2000);
         }
