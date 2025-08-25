@@ -49,14 +49,13 @@
     <!-- Desktop welcome card container -->
     <div id="welcomeContainer" class="w-full max-w-4xl p-5 md:p-0">
         <div class="bg-white rounded-2xl p-8 md:p-10 text-center shadow-2xl animate-slide-up">
-            <h1 class="text-3xl md:text-4xl font-bold mb-4 gradient-text">Быстрый звонок</h1>
-            <p class="text-gray-600 mb-8 text-lg">Мгновенные видеозвонки без регистрации</p>
+            <h1 class="text-3xl md:text-4xl font-bold mb-8 gradient-text">Быстрый звонок</h1>
             
             <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-5 my-8 relative">
                 <input type="text" id="roomUrl" readonly value="Создание комнаты..." 
                        class="w-full border-none bg-transparent text-lg font-mono text-center text-gray-600 outline-none">
                 <button onclick="copyLink()" id="copyBtn" 
-                        class="absolute right-5 top-1/2 transform -translate-y-1/2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105 md:static md:transform-none md:mt-3 md:w-full">
+                        class="absolute right-5 top-1/2 transform -translate-y-1/2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 md:static md:transform-none md:mt-3 md:w-full">
                     Копировать ссылку
                 </button>
             </div>
@@ -233,7 +232,11 @@
                 
                 updateStatus('Подключено', 'connected');
                 document.getElementById('instructions').style.display = 'none';
-                document.getElementById('welcomeContainer').querySelector('.bg-white').style.display = 'none';
+                
+                // On mobile, hide welcome card content but keep container for videos
+                if (window.innerWidth < 768) {
+                    document.getElementById('welcomeContainer').querySelector('.bg-white').style.display = 'none';
+                }
             });
             
             call.on('close', () => {
@@ -381,7 +384,10 @@
             
             // Show welcome card elements
             document.getElementById('instructions').style.display = 'block';
-            document.getElementById('welcomeContainer').querySelector('.bg-white').style.display = 'block';
+            const welcomeCard = document.getElementById('welcomeContainer').querySelector('.bg-white');
+            if (welcomeCard) {
+                welcomeCard.style.display = 'block';
+            }
         }
         
         function toggleAudio() {
