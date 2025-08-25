@@ -354,8 +354,9 @@
                     updateStatus('Waiting for someone to join...', 'waiting');
                 } else {
                     updateStatus('Connecting...', 'waiting');
-                    // If not host, try to call the host
-                    setTimeout(() => makeCall(roomId.replace('-join', '')), 1000);
+                    // If not host, try to call the original room ID (host)
+                    const hostId = window.location.hash.slice(1); // Original room ID from URL
+                    setTimeout(() => makeCall(hostId), 1000);
                 }
             });
             
@@ -367,8 +368,8 @@
             peer.on('error', (err) => {
                 console.error('Peer error:', err);
                 if (err.type === 'unavailable-id' && !isHost) {
-                    // Room exists, we're joining
-                    roomId = roomId + '-join';
+                    // Room exists, we're joining - create unique ID for joiner
+                    roomId = roomId + '-guest-' + Date.now();
                     peer = new Peer(roomId, PEERJS_CONFIG);
                     initPeer();
                 }
