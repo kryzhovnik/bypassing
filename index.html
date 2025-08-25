@@ -4,384 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Быстрый звонок</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 900px;
-            padding: 20px;
-        }
-        
-        .welcome-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.5s ease;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        /* Custom styles for complex effects */
+        .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-        
-        .room-link {
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 30px 0;
-            position: relative;
-        }
-        
-        .room-link input {
-            width: 100%;
-            border: none;
-            background: none;
-            font-size: 1.1em;
-            font-family: monospace;
-            text-align: center;
-            color: #495057;
-            outline: none;
-        }
-        
-        .copy-btn {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
-        }
-        
-        .copy-btn:hover {
-            background: #5a67d8;
-            transform: translateY(-50%) scale(1.05);
-        }
-        
-        .copy-btn.copied {
-            background: #48bb78;
-        }
-        
-        .status {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 20px;
-            font-weight: 500;
-        }
-        
-        .status.waiting {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status.connected {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .videos {
-            display: none;
-            margin-top: 30px;
-            margin-bottom: 100px; /* Space for fixed controls */
-        }
-        
-        .videos.waiting {
-            display: block;
-        }
-        
-        .videos.connected {
-            display: block;
-            position: relative;
-        }
-        
-        .video-container {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            aspect-ratio: 16/9;
-        }
-        
-        .videos.waiting .video-container:first-child {
-            /* Host video - full width */
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .videos.waiting .video-container:last-child {
-            /* Remote placeholder - small bottom-right */
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 200px;
-            height: 150px;
-            border: 2px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        
-        .videos.connected .video-container:first-child {
-            display: none; /* Hide the old local video container */
-        }
-        
-        .videos.connected .video-container:last-child {
-            width: 100%;
-        }
-        
-        .local-pip {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 200px;
-            height: 150px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            border: 2px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-        
-        .local-pip video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .local-pip .video-label {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7em;
-        }
-        
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .video-label {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-        }
-        
-        .controls {
+        /* Mobile full-screen video layout */
+        .mobile-full-video {
             position: fixed;
-            bottom: 0;
+            top: 0;
             left: 0;
             right: 0;
-            display: none;
-            justify-content: center;
-            gap: 10px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .controls.active {
-            display: flex;
-        }
-        
-        .control-btn {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            transition: all 0.3s;
-        }
-        
-        .control-btn:hover {
-            transform: scale(1.1);
-            border-color: #667eea;
-        }
-        
-        .control-btn.active {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-        
-        .control-btn.end {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-            width: 60px;
-            height: 60px;
-        }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            
-            .welcome-card {
-                padding: 30px 20px;
-            }
-            
-            .copy-btn {
-                position: static;
-                transform: none;
-                margin-top: 10px;
-                width: 100%;
-            }
-            
-            .local-pip {
-                width: 120px;
-                height: 90px;
-                bottom: 100px; /* Above mobile controls */
-                left: 15px;
-            }
-            
-            .videos.waiting .video-container:last-child {
-                /* Remote placeholder - smaller on mobile */
-                width: 120px;
-                height: 90px;
-                bottom: 100px; /* Above mobile controls */
-                right: 15px;
-            }
-            
-            .controls {
-                padding: 15px 20px;
-                padding-bottom: max(15px, env(safe-area-inset-bottom));
-            }
-            
-            .videos {
-                margin-bottom: 120px; /* More space on mobile */
-            }
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            bottom: 0;
+            z-index: 50;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="welcome-card">
-            <h1>Быстрый звонок</h1>
-            <p class="subtitle">Мгновенные видеозвонки без регистрации</p>
+<body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center text-gray-800">
+    <!-- Desktop welcome card container -->
+    <div id="welcomeContainer" class="w-full max-w-4xl p-5 md:p-0">
+        <div class="bg-white rounded-2xl p-8 md:p-10 text-center shadow-2xl animate-slide-up">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 gradient-text">Быстрый звонок</h1>
+            <p class="text-gray-600 mb-8 text-lg">Мгновенные видеозвонки без регистрации</p>
             
-            <div class="room-link">
-                <input type="text" id="roomUrl" readonly value="Создание комнаты...">
-                <button class="copy-btn" onclick="copyLink()" id="copyBtn">Копировать ссылку</button>
+            <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-5 my-8 relative">
+                <input type="text" id="roomUrl" readonly value="Создание комнаты..." 
+                       class="w-full border-none bg-transparent text-lg font-mono text-center text-gray-600 outline-none">
+                <button onclick="copyLink()" id="copyBtn" 
+                        class="absolute right-5 top-1/2 transform -translate-y-1/2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105 md:static md:transform-none md:mt-3 md:w-full">
+                    Копировать ссылку
+                </button>
             </div>
             
-            <p id="instructions" style="color: #6b7280;">
+            <p id="instructions" class="text-gray-500 mb-6">
                 Поделитесь этой ссылкой, чтобы мгновенно начать звонок
             </p>
             
-            <div id="status" class="status waiting">
+            <div id="status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                 <span id="statusText">Создание комнаты</span>
-                <span class="spinner"></span>
+                <div class="ml-2 w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
             
-            <div class="videos" id="videos">
-                <div class="video-container">
-                    <video id="localVideo" autoplay muted playsinline></video>
-                    <span class="video-label">Вы</span>
+            <!-- Video Container - Responsive Layout -->
+            <div id="videos" class="hidden mt-8 mb-24 md:mb-8">
+                <!-- Local Video (Host) - Desktop: centered, Mobile: full screen when connected -->
+                <div id="localVideoContainer" class="relative rounded-xl overflow-hidden bg-black aspect-video max-w-xl mx-auto">
+                    <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover"></video>
+                    <span class="absolute top-3 left-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">Вы</span>
                 </div>
-                <div class="video-container">
-                    <video id="remoteVideo" autoplay playsinline></video>
-                    <span class="video-label">Собеседник</span>
+                
+                <!-- Remote Video Placeholder/Container -->
+                <div id="remoteVideoContainer" class="relative rounded-xl overflow-hidden bg-black aspect-video w-48 h-36 md:w-full md:h-auto border-2 border-white border-opacity-30 shadow-lg">
+                    <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                    <span class="absolute top-2 left-2 md:top-3 md:left-3 bg-black bg-opacity-70 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm">Собеседник</span>
                 </div>
-            </div>
-            
-            <div class="controls" id="controls">
-                <button class="control-btn" id="muteAudio" onclick="toggleAudio()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M13 8c0 .564-.094 1.107-.266 1.613l-.814-.814A4 4 0 0 0 12 8V7a.5.5 0 0 1 1 0zm-5 4c.818 0 1.578-.245 2.212-.667l.718.719a5 5 0 0 1-2.43.923V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 1 0v1a4 4 0 0 0 4 4m3-9v4.879l-1-1V3a2 2 0 0 0-3.997-.118l-.845-.845A3.001 3.001 0 0 1 11 3"/>
-                        <path d="m9.486 10.607-.748-.748A2 2 0 0 1 6 8v-.878l-1-1V8a3 3 0 0 0 4.486 2.607m-7.84-9.253 12 12 .708-.708-12-12z"/>
-                    </svg>
-                </button>
-                <button class="control-btn" id="muteVideo" onclick="toggleVideo()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M10.961 12.365a2 2 0 0 0 .522-1.103l3.11 1.382A1 1 0 0 0 16 11.731V4.269a1 1 0 0 0-1.406-.913l-3.111 1.382A2 2 0 0 0 9.5 3H4.272l.714 1H9.5a1 1 0 0 1 1 1v6a1 1 0 0 1-.144.518zM1.428 4.18A1 1 0 0 0 1 5v6a1 1 0 0 0 1 1h5.014l.714 1H2a2 2 0 0 1-2-2V5c0-.675.334-1.272.847-1.634zM15 11.73l-3.5-1.555v-4.35L15 4.269zm-4.407 3.56-10-14 .814-.58 10 14z"/>
-                    </svg>
-                </button>
-                <button class="control-btn end" onclick="endCall()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
-                    </svg>
-                </button>
             </div>
         </div>
+    </div>
+
+    <!-- Fixed Control Bar -->
+    <div id="controls" class="fixed bottom-0 left-0 right-0 hidden justify-center gap-3 p-4 md:p-5 bg-white bg-opacity-95 backdrop-blur-sm border-t border-black border-opacity-10 z-50 shadow-lg pb-safe">
+        <button id="muteAudio" onclick="toggleAudio()" 
+                class="w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-indigo-500 hover:scale-110 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M13 8c0 .564-.094 1.107-.266 1.613l-.814-.814A4 4 0 0 0 12 8V7a.5.5 0 0 1 1 0zm-5 4c.818 0 1.578-.245 2.212-.667l.718.719a5 5 0 0 1-2.43.923V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 1 0v1a4 4 0 0 0 4 4m3-9v4.879l-1-1V3a2 2 0 0 0-3.997-.118l-.845-.845A3.001 3.001 0 0 1 11 3"/>
+                <path d="m9.486 10.607-.748-.748A2 2 0 0 1 6 8v-.878l-1-1V8a3 3 0 0 0 4.486 2.607m-7.84-9.253 12 12 .708-.708-12-12z"/>
+            </svg>
+        </button>
+        
+        <button id="muteVideo" onclick="toggleVideo()" 
+                class="w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-indigo-500 hover:scale-110 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10.961 12.365a2 2 0 0 0 .522-1.103l3.11 1.382A1 1 0 0 0 16 11.731V4.269a1 1 0 0 0-1.406-.913l-3.111 1.382A2 2 0 0 0 9.5 3H4.272l.714 1H9.5a1 1 0 0 1 1 1v6a1 1 0 0 1-.144.518zM1.428 4.18A1 1 0 0 0 1 5v6a1 1 0 0 0 1 1h5.014l.714 1H2a2 2 0 0 1-2-2V5c0-.675.334-1.272.847-1.634zM15 11.73l-3.5-1.555v-4.35L15 4.269zm-4.407 3.56-10-14 .814-.58 10 14z"/>
+            </svg>
+        </button>
+        
+        <button onclick="endCall()" 
+                class="w-14 h-14 md:w-16 md:h-16 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
+            </svg>
+        </button>
     </div>
 
     <script>
@@ -438,8 +166,7 @@
                 document.getElementById('localVideo').srcObject = localStream;
                 
                 // Show video immediately in waiting state
-                document.getElementById('videos').classList.add('waiting');
-                document.getElementById('controls').classList.add('active');
+                showWaitingState();
                 
             } catch (err) {
                 console.error('Failed to get media:', err);
@@ -501,16 +228,12 @@
                 console.log('Got remote stream');
                 document.getElementById('remoteVideo').srcObject = remoteStream;
                 
-                // Transition to connected state with PiP layout
-                document.getElementById('videos').classList.remove('waiting');
-                document.getElementById('videos').classList.add('connected');
-                
-                // Create PiP container for local video
-                createLocalPiP();
+                // Transition to connected state with responsive layout
+                showConnectedState();
                 
                 updateStatus('Подключено', 'connected');
                 document.getElementById('instructions').style.display = 'none';
-                document.querySelector('.room-link').style.display = 'none';
+                document.getElementById('welcomeContainer').querySelector('.bg-white').style.display = 'none';
             });
             
             call.on('close', () => {
@@ -523,31 +246,100 @@
             });
         }
         
-        function createLocalPiP() {
+        function showWaitingState() {
+            const videos = document.getElementById('videos');
+            const controls = document.getElementById('controls');
+            const localContainer = document.getElementById('localVideoContainer');
+            const remoteContainer = document.getElementById('remoteVideoContainer');
+            
+            // Show videos and controls
+            videos.classList.remove('hidden');
+            controls.classList.remove('hidden');
+            controls.classList.add('flex');
+            
+            // Position remote placeholder in bottom-right
+            remoteContainer.classList.add('absolute', 'bottom-24', 'right-4', 'md:bottom-5', 'md:right-5');
+            remoteContainer.classList.remove('md:w-full', 'md:h-auto');
+        }
+        
+        function showConnectedState() {
+            const welcomeContainer = document.getElementById('welcomeContainer');
+            const videos = document.getElementById('videos');
+            const localContainer = document.getElementById('localVideoContainer');
+            const remoteContainer = document.getElementById('remoteVideoContainer');
+            const isMobile = window.innerWidth < 768;
+            
+            if (isMobile) {
+                // Mobile: Full screen experience
+                welcomeContainer.classList.add('mobile-full-video');
+                videos.classList.add('mobile-full-video', 'bg-black');
+                videos.classList.remove('mt-8', 'mb-24');
+                
+                // Remote video takes full screen
+                remoteContainer.classList.remove('w-48', 'h-36', 'absolute', 'bottom-24', 'right-4', 'border-2', 'border-white', 'border-opacity-30', 'shadow-lg', 'rounded-xl');
+                remoteContainer.classList.add('w-full', 'h-full', 'absolute', 'inset-0');
+                
+                // Create mobile PiP for local video
+                createMobilePiP();
+            } else {
+                // Desktop: Keep container layout but switch videos
+                remoteContainer.classList.remove('absolute', 'bottom-5', 'right-5', 'w-48', 'h-36');
+                remoteContainer.classList.add('w-full', 'max-w-4xl', 'mx-auto');
+                
+                // Hide local video container and create desktop PiP
+                localContainer.classList.add('hidden');
+                createDesktopPiP();
+            }
+        }
+        
+        function createMobilePiP() {
             // Remove existing PiP if any
-            const existingPiP = document.querySelector('.local-pip');
+            const existingPiP = document.querySelector('#localPiP');
             if (existingPiP) existingPiP.remove();
             
-            // Create new PiP container
+            // Create mobile PiP - smaller and positioned above controls
             const pipContainer = document.createElement('div');
-            pipContainer.className = 'local-pip';
+            pipContainer.id = 'localPiP';
+            pipContainer.className = 'absolute bottom-20 left-4 w-24 h-18 rounded-lg overflow-hidden bg-black border border-white border-opacity-50 shadow-lg z-10';
             
             // Clone local video for PiP
-            const localVideo = document.getElementById('localVideo');
-            const pipVideo = localVideo.cloneNode(true);
-            pipVideo.id = 'localVideoPiP';
+            const pipVideo = document.getElementById('localVideo').cloneNode(true);
+            pipVideo.className = 'w-full h-full object-cover';
             pipVideo.srcObject = localStream;
             
             // Add label
             const label = document.createElement('span');
-            label.className = 'video-label';
+            label.className = 'absolute top-1 left-1 bg-black bg-opacity-70 text-white px-1 py-0.5 rounded text-xs';
             label.textContent = 'Вы';
             
             pipContainer.appendChild(pipVideo);
             pipContainer.appendChild(label);
-            
-            // Add to remote video container
             document.getElementById('videos').appendChild(pipContainer);
+        }
+        
+        function createDesktopPiP() {
+            // Remove existing PiP if any
+            const existingPiP = document.querySelector('#localPiP');
+            if (existingPiP) existingPiP.remove();
+            
+            // Create desktop PiP in bottom-left
+            const pipContainer = document.createElement('div');
+            pipContainer.id = 'localPiP';
+            pipContainer.className = 'absolute bottom-5 left-5 w-48 h-36 rounded-xl overflow-hidden bg-black border-2 border-white border-opacity-30 shadow-lg z-10';
+            
+            // Clone local video for PiP
+            const pipVideo = document.getElementById('localVideo').cloneNode(true);
+            pipVideo.className = 'w-full h-full object-cover';
+            pipVideo.srcObject = localStream;
+            
+            // Add label
+            const label = document.createElement('span');
+            label.className = 'absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-full text-sm';
+            label.textContent = 'Вы';
+            
+            pipContainer.appendChild(pipVideo);
+            pipContainer.appendChild(label);
+            document.getElementById('remoteVideoContainer').appendChild(pipContainer);
         }
         
         function endCall() {
@@ -556,16 +348,40 @@
                 currentCall = null;
             }
             
-            // Remove PiP
-            const existingPiP = document.querySelector('.local-pip');
+            // Reset to waiting state
+            resetToWaitingState();
+            updateStatus('Звонок завершен - Ожидание собеседника...', 'waiting');
+        }
+        
+        function resetToWaitingState() {
+            // Remove any PiP
+            const existingPiP = document.querySelector('#localPiP');
             if (existingPiP) existingPiP.remove();
             
+            // Reset containers
+            const welcomeContainer = document.getElementById('welcomeContainer');
+            const videos = document.getElementById('videos');
+            const localContainer = document.getElementById('localVideoContainer');
+            const remoteContainer = document.getElementById('remoteVideoContainer');
+            
+            // Remove mobile full-screen classes
+            welcomeContainer.classList.remove('mobile-full-video');
+            videos.classList.remove('mobile-full-video', 'bg-black');
+            videos.classList.add('mt-8', 'mb-24', 'md:mb-8');
+            
+            // Reset video containers
+            localContainer.classList.remove('hidden');
+            
+            // Reset remote container to placeholder position
+            remoteContainer.classList.remove('w-full', 'h-full', 'absolute', 'inset-0', 'max-w-4xl', 'mx-auto');
+            remoteContainer.classList.add('w-48', 'h-36', 'absolute', 'bottom-24', 'right-4', 'md:bottom-5', 'md:right-5', 'border-2', 'border-white', 'border-opacity-30', 'shadow-lg', 'rounded-xl');
+            
+            // Clear remote video
             document.getElementById('remoteVideo').srcObject = null;
-            document.getElementById('videos').classList.remove('connected');
-            document.getElementById('videos').classList.add('waiting');
+            
+            // Show welcome card elements
             document.getElementById('instructions').style.display = 'block';
-            document.querySelector('.room-link').style.display = 'block';
-            updateStatus('Звонок завершен - Ожидание собеседника...', 'waiting');
+            document.getElementById('welcomeContainer').querySelector('.bg-white').style.display = 'block';
         }
         
         function toggleAudio() {
@@ -574,7 +390,15 @@
                 localStream.getAudioTracks().forEach(track => {
                     track.enabled = !isAudioMuted;
                 });
-                document.getElementById('muteAudio').classList.toggle('active');
+                
+                const btn = document.getElementById('muteAudio');
+                if (isAudioMuted) {
+                    btn.classList.remove('border-gray-200', 'text-gray-600');
+                    btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                } else {
+                    btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+                    btn.classList.add('border-gray-200', 'text-gray-600');
+                }
             }
         }
         
@@ -584,7 +408,15 @@
                 localStream.getVideoTracks().forEach(track => {
                     track.enabled = !isVideoMuted;
                 });
-                document.getElementById('muteVideo').classList.toggle('active');
+                
+                const btn = document.getElementById('muteVideo');
+                if (isVideoMuted) {
+                    btn.classList.remove('border-gray-200', 'text-gray-600');
+                    btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                } else {
+                    btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+                    btn.classList.add('border-gray-200', 'text-gray-600');
+                }
             }
         }
         
@@ -608,14 +440,36 @@
             const statusText = document.getElementById('statusText');
             
             statusText.textContent = text;
-            statusEl.className = 'status ' + type;
+            
+            // Update classes based on type
+            statusEl.className = 'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium';
+            
+            switch(type) {
+                case 'waiting':
+                    statusEl.classList.add('bg-yellow-100', 'text-yellow-800');
+                    break;
+                case 'connected':
+                    statusEl.classList.add('bg-green-100', 'text-green-800');
+                    break;
+                case 'error':
+                    statusEl.classList.add('bg-red-100', 'text-red-800');
+                    break;
+            }
             
             // Remove spinner if connected or error
             if (type === 'connected' || type === 'error') {
-                const spinner = statusEl.querySelector('.spinner');
+                const spinner = statusEl.querySelector('.animate-spin');
                 if (spinner) spinner.remove();
             }
         }
+        
+        // Handle window resize for responsive layout
+        window.addEventListener('resize', () => {
+            if (currentCall && document.getElementById('remoteVideo').srcObject) {
+                // Re-apply connected state layout for new screen size
+                showConnectedState();
+            }
+        });
         
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
